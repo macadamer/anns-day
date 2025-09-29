@@ -49,7 +49,7 @@
     document.getElementById('banner').innerText = days[today.getDay()];
 
     async function loadCalendarEvents() {
-      const icsUrl = 'YOUR_PUBLIC_ICAL_URL_HERE'; // <- Replace with iCloud .ics link
+      const icsUrl = 'webcal://p112-caldav.icloud.com/published/2/ODQwMzg1MzM4NDAzODUzM38OfNp9AeMCEcu4ZbyDcz-dhpwQrFAwxVwHFLaLwya46gbuPE1LS3GpQPMaW07RYADV2RHsf6tWBgBmY1izWXc; // <- Replace with iCloud .ics link
       try {
         const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(icsUrl)}`);
         const text = await response.text();
