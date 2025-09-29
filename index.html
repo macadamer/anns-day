@@ -103,7 +103,7 @@
 
     // Load calendar events (same as before — simplified)
     async function loadCalendarEvents() {
-      const icsUrl = webcal://p112-caldav.icloud.com/published/2/ODQwMzg1MzM4NDAzODUzM38OfNp9AeMCEcu4ZbyDcz-dhpwQrFAwxVwHFLaLwya46gbuPE1LS3GpQPMaW07RYADV2RHsf6tWBgBmY1izWXc; // Replace with actual iCloud .ics link
+      const icsUrl = ‘ ‘ // Replace with actual iCloud .ics link
 
       try {
         const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(icsUrl)}`);
