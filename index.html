@@ -10,32 +10,62 @@
       margin: 0;
       padding: 0;
     }
+
     header {
       background-color: red;
       color: black;
       text-align: center;
-      padding: 1em;
-      font-size: 1.5em;
+      padding: 20px;
     }
+
+    .banner-line-1 {
+      font-size: 18pt;
+      margin: 0;
+    }
+
+    .banner-line-2 {
+      font-size: 36pt;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    #time-info {
+      text-align: center;
+      font-size: 18pt;
+      margin-top: 30px;
+    }
+
     #events {
       padding: 1em;
     }
+
     .event {
       border-bottom: 1px solid #ccc;
       padding: 0.5em 0;
     }
+
     @media (max-width: 600px) {
-      header {
-        font-size: 1.2em;
+      .banner-line-2 {
+        font-size: 28pt;
+      }
+
+      #time-info {
+        font-size: 16pt;
       }
     }
   </style>
 </head>
 <body>
 
-  <header id="banner">
-    <!-- Day of the week will appear here -->
+  <header>
+    <p class="banner-line-1">Today is:</p>
+    <p class="banner-line-2" id="day-of-week">Loading...</p>
   </header>
+
+  <div id="time-info">
+    <p>The time is: <span id="time">--:--</span></p>
+    <p id="time-context">Checking time...</p>
+  </div>
 
   <section id="events">
     <h2>Upcoming Events</h2>
@@ -43,13 +73,38 @@
   </section>
 
   <script>
-    // Show current day in banner
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const today = new Date();
-    document.getElementById('banner').innerText = days[today.getDay()];
+    // Set day of the week
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const now = new Date();
+    document.getElementById("day-of-week").innerText = dayNames[now.getDay()];
 
+    // Format time (HH:MM)
+    function formatTime(date) {
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+
+    // Determine context message
+    function getTimeContext(hours) {
+      if (hours < 12) {
+        return "in the morning. Have you taken your tablets?";
+      } else if (hours < 17) {
+        return "in the afternoon.";
+      } else {
+        return "in the evening. Don't forget to take your tablet before bed.";
+      }
+    }
+
+    // Set time and context
+    const hours = now.getHours();
+    document.getElementById("time").innerText = formatTime(now);
+    document.getElementById("time-context").innerText = getTimeContext(hours);
+
+    // Load calendar events (same as before — simplified)
     async function loadCalendarEvents() {
-      const icsUrl = webcal://p112-caldav.icloud.com/published/2/ODQwMzg1MzM4NDAzODUzM38OfNp9AeMCEcu4ZbyDcz-dhpwQrFAwxVwHFLaLwya46gbuPE1LS3GpQPMaW07RYADV2RHsf6tWBgBmY1izWXc; // <- Replace with iCloud .ics link
+      const icsUrl = 'YOUR_PUBLIC_ICAL_URL_HERE'; // Replace with actual iCloud .ics link
+
       try {
         const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(icsUrl)}`);
         const text = await response.text();
