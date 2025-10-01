@@ -47,7 +47,15 @@
     .event {
       border-bottom: 1px solid #ccc;
       padding: 0.5em 0;
-      font-size: 20pt; /* larger event text */
+      font-size: 20pt;
+      color: black;
+    }
+
+    .event-day {
+      color: red;
+      font-weight: bold;
+      display: inline;
+      margin-right: 0.5em;
     }
 
     @media (max-width: 600px) {
@@ -95,26 +103,17 @@
 
     function getTimeContext(hours) {
       if (hours < 12) {
-        return {
-          period: "in the morning.",
-          reminder: "Have you taken your tablets?"
-        };
+        return { period: "in the morning.", reminder: "Have you taken your tablets?" };
       } else if (hours < 17) {
-        return {
-          period: "in the afternoon.",
-          reminder: ""
-        };
+        return { period: "in the afternoon.", reminder: "" };
       } else {
-        return {
-          period: "in the evening.",
-          reminder: "Don't forget to take your tablet before bed."
-        };
+        return { period: "in the evening.", reminder: "Don't forget to take your tablet before bed." };
       }
     }
 
     function updateTimeAndDay() {
       const now = new Date();
-      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
       const hours = now.getHours();
       const timeStr = formatTime(now);
       const context = getTimeContext(hours);
@@ -125,7 +124,14 @@
     }
 
     updateTimeAndDay();
-    setInterval(updateTimeAndDay, 60000); // update every minute
+    setInterval(updateTimeAndDay, 60000);
+
+    // === Helper to compare local dates ===
+    function isSameLocalDate(date1, date2) {
+      return date1.getFullYear() === date2.getFullYear() &&
+             date1.getMonth() === date2.getMonth() &&
+             date1.getDate() === date2.getDate();
+    }
 
     // === Google Calendar .ics Event Loader ===
     const icsUrl = 'https://calendar.google.com/calendar/ical/tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com/public/basic.ics';
@@ -172,13 +178,7 @@
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
 
-      return events.filter(ev =>
-        ev.start &&
-        (
-          ev.start.toDateString() === now.toDateString() ||
-          ev.start.toDateString() === tomorrow.toDateString()
-        )
-      );
+      return events.filter(ev => ev.start && (isSameLocalDate(ev.start, now) || isSameLocalDate(ev.start, tomorrow)));
     }
 
     function displayEvents(events) {
@@ -198,16 +198,15 @@
         div.className = "event";
 
         let dayLabel = "";
-        if (ev.start.toDateString() === now.toDateString()) {
+        if (isSameLocalDate(ev.start, now)) {
           dayLabel = "Today";
-        } else if (ev.start.toDateString() === tomorrow.toDateString()) {
+        } else if (isSameLocalDate(ev.start, tomorrow)) {
           dayLabel = "Tomorrow";
         }
 
-        // Add event time in HH:MM format
         const eventTime = `${ev.start.getHours().toString().padStart(2,'0')}:${ev.start.getMinutes().toString().padStart(2,'0')}`;
 
-        div.innerHTML = `<strong>${dayLabel}</strong><br>${eventTime} – ${ev.summary}`;
+        div.innerHTML = `<span class="event-day">${dayLabel}</span>${eventTime} – ${ev.summary}`;
         container.appendChild(div);
       });
     }
