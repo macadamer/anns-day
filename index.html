@@ -53,6 +53,7 @@
       .banner-line-2 {
         font-size: 28pt;
       }
+
       #time-info {
         font-size: 16pt;
       }
@@ -63,13 +64,13 @@
 
   <!-- Banner -->
   <header>
-    <p class="banner-line-1">Today is</p>
+    <p class="banner-line-1">Today is:</p>
     <p class="banner-line-2" id="day-of-week">Loading...</p>
   </header>
 
   <!-- Time & Reminder -->
   <div id="time-info">
-    <p id="time-line">The time is --:--</p>
+    <p id="time-line">The time is: --:--</p>
     <p id="time-reminder"></p>
   </div>
 
@@ -79,27 +80,33 @@
     <div id="event-list">Loading events...</div>
   </section>
 
-  <!-- Script -->
   <script>
-    // Format time as HH:MM
+    // === Time display functions ===
     function formatTime(date) {
       const hours = date.getHours();
       const minutes = date.getMinutes();
       return `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}`;
     }
 
-    // Determine period and reminder
     function getTimeContext(hours) {
       if (hours < 12) {
-        return { period: "in the morning.", reminder: "Have you taken your tablets?" };
+        return {
+          period: "in the morning.",
+          reminder: "Have you taken your tablets?"
+        };
       } else if (hours < 17) {
-        return { period: "in the afternoon.", reminder: "" };
+        return {
+          period: "in the afternoon.",
+          reminder: ""
+        };
       } else {
-        return { period: "in the evening.", reminder: "Don't forget to take your tablet before bed." };
+        return {
+          period: "in the evening.",
+          reminder: "Don't forget to take your tablet before bed."
+        };
       }
     }
 
-    // Update day, time, and reminder
     function updateTimeAndDay() {
       const now = new Date();
       const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -112,42 +119,44 @@
       document.getElementById("time-reminder").innerText = context.reminder;
     }
 
-    // Initial update & auto-update every minute
     updateTimeAndDay();
-    setInterval(updateTimeAndDay, 60000);
+    setInterval(updateTimeAndDay, 60000); // update every minute
 
-    // Load calendar events
+    // === Google Calendar .ics Event Loader ===
+    const icsUrl = 'https://calendar.google.com/calendar/ical/tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com/public/basic.ics';
+
     async function loadCalendarEvents() {
-      const icsUrl = 'YOUR_PUBLIC_ICAL_URL_HERE'; // Replace with your iCloud .ics link
       try {
         const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(icsUrl)}`);
         const text = await response.text();
         const events = parseICal(text);
         displayEvents(events);
-      } catch (error) {
+      } catch (err) {
         document.getElementById("event-list").innerText = "Could not load calendar.";
-        console.error(error);
+        console.error(err);
       }
     }
 
-    function parseICal(icsText) {
+    function parseICal(data) {
       const events = [];
-      const lines = icsText.split(/\r?\n/);
+      const lines = data.split(/\r?\n/);
       let event = null;
 
       for (let line of lines) {
-        if (line.startsWith('BEGIN:VEVENT')) {
+        if (line.startsWith("BEGIN:VEVENT")) {
           event = {};
-        } else if (line.startsWith('END:VEVENT')) {
+        } else if (line.startsWith("END:VEVENT")) {
           if (event) events.push(event);
           event = null;
         } else if (event) {
-          if (line.startsWith('SUMMARY:')) event.summary = line.substring(8);
-          if (line.startsWith('DTSTART')) {
+          if (line.startsWith("SUMMARY:")) {
+            event.summary = line.substring(8);
+          } else if (line.startsWith("DTSTART")) {
             const match = line.match(/:(\d{8}T\d{6})/);
             if (match) {
               event.start = new Date(match[1].replace(
-                /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6'
+                /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
+                "$1-$2-$3T$4:$5:$6"
               ));
             }
           }
@@ -158,21 +167,26 @@
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
 
-      return events.filter(e => e.start && 
-        (e.start.toDateString() === now.toDateString() || e.start.toDateString() === tomorrow.toDateString())
+      return events.filter(ev =>
+        ev.start &&
+        (
+          ev.start.toDateString() === now.toDateString() ||
+          ev.start.toDateString() === tomorrow.toDateString()
+        )
       );
     }
 
     function displayEvents(events) {
-      const container = document.getElementById('event-list');
+      const container = document.getElementById("event-list");
       if (events.length === 0) {
         container.innerText = "No events today or tomorrow.";
         return;
       }
-      container.innerHTML = '';
+
+      container.innerHTML = "";
       for (let ev of events) {
-        const div = document.createElement('div');
-        div.className = 'event';
+        const div = document.createElement("div");
+        div.className = "event";
         div.innerHTML = `<strong>${ev.start.toDateString()}</strong><br>${ev.summary}`;
         container.appendChild(div);
       }
