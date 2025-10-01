@@ -163,12 +163,27 @@
           if (line.startsWith("SUMMARY:")) {
             event.summary = line.substring(8);
           } else if (line.startsWith("DTSTART")) {
-            const match = line.match(/:(\d{8}T\d{6})/);
-            if (match) {
-              event.start = new Date(match[1].replace(
-                /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
-                "$1-$2-$3T$4:$5:$6"
-              ));
+            // All-day event
+            if (line.includes("VALUE=DATE")) {
+              const match = line.match(/DTSTART;VALUE=DATE:(\d{8})/);
+              if (match) {
+                const y = match[1].slice(0,4);
+                const m = match[1].slice(4,6);
+                const d = match[1].slice(6,8);
+                event.start = new Date(`${y}-${m}-${d}T00:00:00`);
+              }
+            } else {
+              const match = line.match(/:(\d{8}T\d{6})/);
+              if (match) {
+                const val = match[1];
+                const y = val.slice(0,4);
+                const m = val.slice(4,6);
+                const d = val.slice(6,8);
+                const h = val.slice(9,11);
+                const min = val.slice(11,13);
+                const s = val.slice(13,15);
+                event.start = new Date(`${y}-${m}-${d}T${h}:${min}:${s}`);
+              }
             }
           }
         }
@@ -178,7 +193,9 @@
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
 
-      return events.filter(ev => ev.start && (isSameLocalDate(ev.start, now) || isSameLocalDate(ev.start, tomorrow)));
+      return events.filter(ev => ev.start && 
+        (isSameLocalDate(ev.start, now) || isSameLocalDate(ev.start, tomorrow))
+      );
     }
 
     function displayEvents(events) {
@@ -204,7 +221,9 @@
           dayLabel = "Tomorrow";
         }
 
-        const eventTime = `${ev.start.getHours().toString().padStart(2,'0')}:${ev.start.getMinutes().toString().padStart(2,'0')}`;
+        const eventTime = ev.start.getHours() === 0 && ev.start.getMinutes() === 0
+                          ? "All day"
+                          : `${ev.start.getHours().toString().padStart(2,'0')}:${ev.start.getMinutes().toString().padStart(2,'0')}`;
 
         div.innerHTML = `<span class="event-day">${dayLabel}</span>${eventTime} – ${ev.summary}`;
         container.appendChild(div);
