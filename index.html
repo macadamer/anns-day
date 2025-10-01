@@ -47,6 +47,7 @@
     .event {
       border-bottom: 1px solid #ccc;
       padding: 0.5em 0;
+      font-size: 20pt; /* larger event text */
     }
 
     @media (max-width: 600px) {
@@ -56,6 +57,10 @@
 
       #time-info {
         font-size: 16pt;
+      }
+
+      .event {
+        font-size: 18pt;
       }
     }
   </style>
@@ -184,12 +189,27 @@
       }
 
       container.innerHTML = "";
-      for (let ev of events) {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+
+      events.forEach(ev => {
         const div = document.createElement("div");
         div.className = "event";
-        div.innerHTML = `<strong>${ev.start.toDateString()}</strong><br>${ev.summary}`;
+
+        let dayLabel = "";
+        if (ev.start.toDateString() === now.toDateString()) {
+          dayLabel = "Today";
+        } else if (ev.start.toDateString() === tomorrow.toDateString()) {
+          dayLabel = "Tomorrow";
+        }
+
+        // Add event time in HH:MM format
+        const eventTime = `${ev.start.getHours().toString().padStart(2,'0')}:${ev.start.getMinutes().toString().padStart(2,'0')}`;
+
+        div.innerHTML = `<strong>${dayLabel}</strong><br>${eventTime} – ${ev.summary}`;
         container.appendChild(div);
-      }
+      });
     }
 
     loadCalendarEvents();
