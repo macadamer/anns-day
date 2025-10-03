@@ -58,6 +58,10 @@
       margin-right: 0.5em;
     }
 
+    .highlight {
+      background-color: #fffd9b;
+    }
+
     @media (max-width: 600px) {
       .banner-line-2 {
         font-size: 28pt;
@@ -94,7 +98,6 @@
   </section>
 
   <script>
-    // === Time display functions ===
     function formatTime(date) {
       const hours = date.getHours();
       const minutes = date.getMinutes();
@@ -126,14 +129,12 @@
     updateTimeAndDay();
     setInterval(updateTimeAndDay, 60000);
 
-    // === Helper to compare local dates ===
     function isSameLocalDate(date1, date2) {
       return date1.getFullYear() === date2.getFullYear() &&
              date1.getMonth() === date2.getMonth() &&
              date1.getDate() === date2.getDate();
     }
 
-    // === Google Calendar .ics Event Loader ===
     const icsUrl = 'https://calendar.google.com/calendar/ical/tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com/public/basic.ics';
 
     async function loadCalendarEvents() {
@@ -163,7 +164,6 @@
           if (line.startsWith("SUMMARY:")) {
             event.summary = line.substring(8);
           } else if (line.startsWith("DTSTART")) {
-            // All-day event
             if (line.includes("VALUE=DATE")) {
               const match = line.match(/DTSTART;VALUE=DATE:(\d{8})/);
               if (match) {
@@ -173,16 +173,10 @@
                 event.start = new Date(`${y}-${m}-${d}T00:00:00`);
               }
             } else {
-              const match = line.match(/:(\d{8}T\d{6})/);
+              const match = line.match(/:(\d{8}T\d{6}Z?)/);
               if (match) {
                 const val = match[1];
-                const y = val.slice(0,4);
-                const m = val.slice(4,6);
-                const d = val.slice(6,8);
-                const h = val.slice(9,11);
-                const min = val.slice(11,13);
-                const s = val.slice(13,15);
-                event.start = new Date(`${y}-${m}-${d}T${h}:${min}:${s}`);
+                event.start = new Date(val); // Browser will interpret correctly as UTC or local
               }
             }
           }
@@ -193,7 +187,8 @@
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
 
-      return events.filter(ev => ev.start && 
+      return events.filter(ev =>
+        ev.start &&
         (isSameLocalDate(ev.start, now) || isSameLocalDate(ev.start, tomorrow))
       );
     }
@@ -207,6 +202,7 @@
 
       container.innerHTML = "";
       const now = new Date();
+      const oneHourLater = new Date(now.getTime() + 60 * 60000);
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
 
@@ -221,9 +217,16 @@
           dayLabel = "Tomorrow";
         }
 
-        const eventTime = ev.start.getHours() === 0 && ev.start.getMinutes() === 0
-                          ? "All day"
-                          : `${ev.start.getHours().toString().padStart(2,'0')}:${ev.start.getMinutes().toString().padStart(2,'0')}`;
+        const isAllDay = ev.start.getHours() === 0 && ev.start.getMinutes() === 0;
+        const eventTime = isAllDay
+          ? "All day"
+          : formatTime(ev.start);
+
+        const isSoon = !isAllDay && ev.start >= now && ev.start <= oneHourLater;
+
+        if (isSoon) {
+          div.classList.add("highlight");
+        }
 
         div.innerHTML = `<span class="event-day">${dayLabel}</span>${eventTime} – ${ev.summary}`;
         container.appendChild(div);
