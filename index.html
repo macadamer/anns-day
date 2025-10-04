@@ -82,7 +82,7 @@
   <!-- Banner -->
   <header>
     <p class="banner-line-1">Today is:</p>
-    <p class="banner-line-2" id="day-of-week">Loading...</p>
+    <p class="banner-line-2" id="day-of-week-date">Loading...</p>
   </header>
 
   <!-- Time & Reminder -->
@@ -101,7 +101,7 @@
     function formatTime(date) {
       const h = date.getHours();
       const m = date.getMinutes();
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
     }
 
     function getTimeContext(hours) {
@@ -114,10 +114,25 @@
       }
     }
 
+    function getOrdinal(day) {
+      if (day > 3 && day < 21) return day + 'th';
+      switch (day % 10) {
+        case 1: return day + 'st';
+        case 2: return day + 'nd';
+        case 3: return day + 'rd';
+        default: return day + 'th';
+      }
+    }
+
     function updateTimeAndDay() {
       const now = new Date();
       const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-      document.getElementById("day-of-week").innerText = dayNames[now.getDay()];
+      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+      const dayStr = dayNames[now.getDay()];
+      const dateStr = getOrdinal(now.getDate());
+      const monthStr = monthNames[now.getMonth()]; // Sep is already 3 letters
+      document.getElementById("day-of-week-date").innerText = `${dayStr}, ${dateStr} ${monthStr}`;
 
       const hours = now.getHours();
       const timeStr = formatTime(now);
@@ -136,7 +151,6 @@
              d1.getDate() === d2.getDate();
     }
 
-    // Your public .ics URL
     const icsUrl = 'https://calendar.google.com/calendar/ical/tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com/public/basic.ics';
 
     async function loadCalendarEvents() {
@@ -168,7 +182,6 @@
           if (line.startsWith("SUMMARY:")) {
             ev.summary = line.substring(8);
           } else if (line.startsWith("DTSTART")) {
-            // handle all-day vs timed
             if (line.includes("VALUE=DATE")) {
               const m = line.match(/DTSTART;VALUE=DATE:(\d{8})/);
               if (m) {
@@ -180,7 +193,6 @@
             } else {
               const m = line.match(/:(\d{8}T\d{6}Z?)/);
               if (m) {
-                // let JS parse the ISO-like string
                 ev.start = new Date(m[1]);
               }
             }
@@ -204,7 +216,7 @@
 
       container.innerHTML = "";
       const now = new Date();
-      const oneHourLater = new Date(now.getTime() + (60 * 60000));
+      const oneHourLater = new Date(now.getTime() + (60*60000));
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
 
@@ -222,10 +234,8 @@
         const isAllDay = e.start.getHours() === 0 && e.start.getMinutes() === 0;
         const timeStr = isAllDay ? "All day" : formatTime(e.start);
 
-        const isSoon = !isAllDay && (e.start >= now && e.start <= oneHourLater);
-        if (isSoon) {
-          div.classList.add("highlight");
-        }
+        const isSoon = !isAllDay && e.start >= now && e.start <= oneHourLater;
+        if (isSoon) div.classList.add("highlight");
 
         div.innerHTML = `<span class="event-day">${dayLabel}</span>${timeStr} – ${e.summary}`;
         container.appendChild(div);
