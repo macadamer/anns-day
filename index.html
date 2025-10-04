@@ -40,26 +40,13 @@
       margin-top: 5px;
     }
 
-    #events {
-      padding: 1em;
-    }
-
-    .event {
-      border-bottom: 1px solid #ccc;
-      padding: 0.5em 0;
-      font-size: 20pt;
-      color: black;
-    }
-
-    .event-day {
-      color: red;
-      font-weight: bold;
-      display: inline;
-      margin-right: 0.5em;
-    }
-
-    .highlight {
-      background-color: #fffd9b;
+    iframe {
+      display: block;
+      margin: 30px auto;
+      width: 95%;
+      max-width: 800px;
+      height: 600px;
+      border: solid 1px #777;
     }
 
     @media (max-width: 600px) {
@@ -71,8 +58,8 @@
         font-size: 16pt;
       }
 
-      .event {
-        font-size: 18pt;
+      iframe {
+        height: 500px;
       }
     }
   </style>
@@ -91,12 +78,14 @@
     <p id="time-reminder"></p>
   </div>
 
-  <!-- Upcoming Events -->
-  <section id="events">
-    <h2>Upcoming Events</h2>
-    <div id="event-list">Loading events...</div>
-  </section>
+  <!-- Google Calendar Embed -->
+  <iframe
+    src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Europe%2FLondon&showPrint=0&src=ZGVycnljay5jcm9rZXJAZ21haWwuY29t&src=dHI1cjFjajdjazQ5bDdwN3E1ZmlqY3R0dWRzMzB0dXZAaW1wb3J0LmNhbGVuZGFyLmdvb2dsZS5jb20&color=%237986cb&color=%23d81b60"
+    frameborder="0"
+    scrolling="no">
+  </iframe>
 
+  <!-- Scripts -->
   <script>
     function formatTime(date) {
       const hours = date.getHours();
@@ -128,112 +117,7 @@
 
     updateTimeAndDay();
     setInterval(updateTimeAndDay, 60000);
-
-    function isSameLocalDate(date1, date2) {
-      return date1.getFullYear() === date2.getFullYear() &&
-             date1.getMonth() === date2.getMonth() &&
-             date1.getDate() === date2.getDate();
-    }
-
-    const icsUrl = 'https://calendar.google.com/calendar/ical/tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com/public/basic.ics';
-
-    async function loadCalendarEvents() {
-      try {
-        const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(icsUrl)}`);
-        const text = await response.text();
-        const events = parseICal(text);
-        displayEvents(events);
-      } catch (err) {
-        document.getElementById("event-list").innerText = "Could not load calendar.";
-        console.error(err);
-      }
-    }
-
-    function parseICal(data) {
-      const events = [];
-      const lines = data.split(/\r?\n/);
-      let event = null;
-
-      for (let line of lines) {
-        if (line.startsWith("BEGIN:VEVENT")) {
-          event = {};
-        } else if (line.startsWith("END:VEVENT")) {
-          if (event) events.push(event);
-          event = null;
-        } else if (event) {
-          if (line.startsWith("SUMMARY:")) {
-            event.summary = line.substring(8);
-          } else if (line.startsWith("DTSTART")) {
-            if (line.includes("VALUE=DATE")) {
-              const match = line.match(/DTSTART;VALUE=DATE:(\d{8})/);
-              if (match) {
-                const y = match[1].slice(0,4);
-                const m = match[1].slice(4,6);
-                const d = match[1].slice(6,8);
-                event.start = new Date(`${y}-${m}-${d}T00:00:00`);
-              }
-            } else {
-              const match = line.match(/:(\d{8}T\d{6}Z?)/);
-              if (match) {
-                const val = match[1];
-                event.start = new Date(val); // Browser will interpret correctly as UTC or local
-              }
-            }
-          }
-        }
-      }
-
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1);
-
-      return events.filter(ev =>
-        ev.start &&
-        (isSameLocalDate(ev.start, now) || isSameLocalDate(ev.start, tomorrow))
-      );
-    }
-
-    function displayEvents(events) {
-      const container = document.getElementById("event-list");
-      if (events.length === 0) {
-        container.innerText = "No events today or tomorrow.";
-        return;
-      }
-
-      container.innerHTML = "";
-      const now = new Date();
-      const oneHourLater = new Date(now.getTime() + 60 * 60000);
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1);
-
-      events.forEach(ev => {
-        const div = document.createElement("div");
-        div.className = "event";
-
-        let dayLabel = "";
-        if (isSameLocalDate(ev.start, now)) {
-          dayLabel = "Today";
-        } else if (isSameLocalDate(ev.start, tomorrow)) {
-          dayLabel = "Tomorrow";
-        }
-
-        const isAllDay = ev.start.getHours() === 0 && ev.start.getMinutes() === 0;
-        const eventTime = isAllDay
-          ? "All day"
-          : formatTime(ev.start);
-
-        const isSoon = !isAllDay && ev.start >= now && ev.start <= oneHourLater;
-
-        if (isSoon) {
-          div.classList.add("highlight");
-        }
-
-        div.innerHTML = `<span class="event-day">${dayLabel}</span>${eventTime} – ${ev.summary}`;
-        container.appendChild(div);
-      });
-    }
-
-    loadCalendarEvents();
   </script>
+
 </body>
 </html>
