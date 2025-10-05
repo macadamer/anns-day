@@ -1,100 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ann’s Day</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f8f8f8; }
-    header {
-      background-color: red;
-      color: black;
-      text-align: center;
-      padding: 20px;
-    }
-    .banner-line-1 { font-size: 18pt; margin: 0; }
-    .banner-line-2 { font-size: 36pt; font-weight: bold; margin: 0; }
-    #time-info { text-align: center; font-size: 18pt; margin-top: 30px; }
-    #time-reminder { font-weight: bold; margin-top: 5px; }
-    .calendar-wrapper { max-width: 1000px; margin: 2em auto; position: relative; }
-    iframe { width: 100%; height: 600px; border: solid 1px #777; }
-    .hint-overlay {
-      text-align: center;
-      margin-bottom: 0.5em;
-      font-size: 18pt;
-      color: #d81b60;
-      font-weight: bold;
-    }
-    .highlight-bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      background: linear-gradient(to right, rgba(255,255,0,0.2) 0%, rgba(255,255,0,0.2) 28%, transparent 28%, transparent 72%, rgba(255,255,0,0.2) 72%, rgba(255,255,0,0.2) 100%);
-    }
-    @media (max-width: 600px) {
-      .banner-line-2 { font-size: 28pt; }
-      #time-info { font-size: 16pt; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ann’s Day</title>
+<style>
+  :root {
+    --highlight-color: rgba(255,255,0,0.3); /* easy to change highlight color */
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f8f8f8;
+  }
+
+  header {
+    background-color: red;
+    color: black;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .banner-line-1 { font-size: 18pt; margin: 0; }
+  .banner-line-2 { font-size: 36pt; font-weight: bold; margin: 0; }
+
+  #time-info {
+    text-align: center;
+    font-size: 18pt;
+    margin-top: 30px;
+  }
+
+  #time-reminder { font-weight: bold; margin-top: 5px; }
+
+  .calendar-wrapper {
+    max-width: 1000px;
+    margin: 2em auto;
+    position: relative;
+  }
+
+  iframe {
+    width: 100%;
+    height: 600px;
+    border: solid 1px #777;
+  }
+
+  .hint-overlay {
+    text-align: center;
+    margin-bottom: 0.5em;
+    font-size: 18pt;
+    color: #d81b60;
+    font-weight: bold;
+  }
+
+  .highlight-bar {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background-color: var(--highlight-color);
+    pointer-events: none;
+    transition: left 0.3s, width 0.3s; /* smooth adjustments on resize */
+  }
+
+  @media (max-width: 600px) {
+    .banner-line-2 { font-size: 28pt; }
+    #time-info { font-size: 16pt; }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <p class="banner-line-1">Today is:</p>
-    <p class="banner-line-2" id="day-of-week-date">Loading...</p>
-  </header>
 
-  <div id="time-info">
-    <p id="time-line">The time is: --:--</p>
-    <p id="time-reminder"></p>
-  </div>
+<header>
+  <p class="banner-line-1">Today is:</p>
+  <p class="banner-line-2" id="day-of-week-date">Loading...</p>
+</header>
 
-  <div class="calendar-wrapper">
-    <div class="hint-overlay">Today & Tomorrow Highlighted</div>
-    <div class="highlight-bar"></div>
-    <iframe
-      src="https://calendar.google.com/calendar/embed?src=tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com&ctz=Europe%2FLondon&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"
-      frameborder="0" scrolling="no">
-    </iframe>
-  </div>
+<div id="time-info">
+  <p id="time-line">The time is: --:--</p>
+  <p id="time-reminder"></p>
+</div>
 
-  <script>
-    function formatTime(date) {
-      const h = date.getHours();
-      const m = date.getMinutes();
-      return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
-    }
+<div class="calendar-wrapper">
+  <div class="hint-overlay">Highlighting Today & Tomorrow</div>
+  <div class="highlight-bar" id="highlight-bar"></div>
+  <iframe
+    src="https://calendar.google.com/calendar/embed?src=tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com&ctz=Europe%2FLondon&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"
+    frameborder="0" scrolling="no">
+  </iframe>
+</div>
 
-    function getTimeContext(hours) {
-      if (hours < 12) return { period: "in the morning.", reminder: "Have you taken your tablets?" };
-      else if (hours < 17) return { period: "in the afternoon.", reminder: "" };
-      else return { period: "in the evening.", reminder: "Don't forget to take your tablet before bed." };
-    }
+<script>
+function formatTime(date) {
+  const h = date.getHours();
+  const m = date.getMinutes();
+  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+}
 
-    function getOrdinal(day) {
-      if (day > 3 && day < 21) return day + 'th';
-      switch (day % 10) { case 1: return day + 'st'; case 2: return day + 'nd'; case 3: return day + 'rd'; default: return day + 'th'; }
-    }
+function getTimeContext(hours) {
+  if (hours < 12) return { period: "in the morning.", reminder: "Have you taken your tablets?" };
+  else if (hours < 17) return { period: "in the afternoon.", reminder: "" };
+  else return { period: "in the evening.", reminder: "Don't forget to take your tablet before bed." };
+}
 
-    function updateTimeAndDay() {
-      const now = new Date();
-      const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"];
-      const dayStr = dayNames[now.getDay()];
-      const dateStr = getOrdinal(now.getDate());
-      const monthStr = monthNames[now.getMonth()];
-      document.getElementById("day-of-week-date").innerText = `${dayStr}, ${dateStr} ${monthStr}`;
-      const hours = now.getHours();
-      const timeStr = formatTime(now);
-      const context = getTimeContext(hours);
-      document.getElementById("time-line").innerText = `The time is: ${timeStr} ${context.period}`;
-      document.getElementById("time-reminder").innerText = context.reminder;
-    }
+function getOrdinal(day) {
+  if (day > 3 && day < 21) return day + 'th';
+  switch (day % 10) { case 1: return day + 'st'; case 2: return day + 'nd'; case 3: return day + 'rd'; default: return day + 'th'; }
+}
 
-    updateTimeAndDay();
-    setInterval(updateTimeAndDay, 60000);
-  </script>
+function updateTimeAndDay() {
+  const now = new Date();
+  const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"];
+
+  const dayStr = dayNames[now.getDay()];
+  const dateStr = getOrdinal(now.getDate());
+  const monthStr = monthNames[now.getMonth()];
+  document.getElementById("day-of-week-date").innerText = `${dayStr}, ${dateStr} ${monthStr}`;
+
+  const hours = now.getHours();
+  const timeStr = formatTime(now);
+  const context = getTimeContext(hours);
+  document.getElementById("time-line").innerText = `The time is: ${timeStr} ${context.period}`;
+  document.getElementById("time-reminder").innerText = context.reminder;
+
+  updateHighlightBar();
+}
+
+// Dynamically position highlight bar for today + tomorrow
+function updateHighlightBar() {
+  const bar = document.getElementById("highlight-bar");
+  const today = new Date().getDay(); // 0=Sun ... 6=Sat
+  const totalDays = 7;
+  const percentPerDay = 100 / totalDays;
+  let leftPercent = today * percentPerDay;
+
+  // If today is Saturday, show Sat+Sun without overflow
+  if (today === 6) leftPercent = 5 * percentPerDay; 
+
+  bar.style.left = `${leftPercent}%`;
+  bar.style.width = `${percentPerDay*2}%`;
+}
+
+// Update every minute
+updateTimeAndDay();
+setInterval(updateTimeAndDay, 60000);
+
+// Adjust highlight bar on window resize
+window.addEventListener('resize', updateHighlightBar);
+</script>
+
 </body>
 </html>
