@@ -5,62 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ann’s Day</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f8f8f8;
-    }
-
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f8f8f8; }
     header {
       background-color: red;
       color: black;
       text-align: center;
       padding: 20px;
     }
-
-    .banner-line-1 {
-      font-size: 18pt;
-      margin: 0;
-    }
-
-    .banner-line-2 {
-      font-size: 36pt;
-      font-weight: bold;
-      margin: 0;
-    }
-
-    #time-info {
-      text-align: center;
-      font-size: 18pt;
-      margin-top: 30px;
-    }
-
-    #time-reminder {
-      font-weight: bold;
-      margin-top: 5px;
-    }
-
-    .calendar-wrapper {
-      max-width: 1000px;
-      margin: 2em auto;
-      position: relative;
-    }
-
-    iframe {
-      width: 100%;
-      height: 600px;
-      border: solid 1px #777;
-    }
-
+    .banner-line-1 { font-size: 18pt; margin: 0; }
+    .banner-line-2 { font-size: 36pt; font-weight: bold; margin: 0; }
+    #time-info { text-align: center; font-size: 18pt; margin-top: 30px; }
+    #time-reminder { font-weight: bold; margin-top: 5px; }
+    .calendar-wrapper { max-width: 1000px; margin: 2em auto; position: relative; }
+    iframe { width: 100%; height: 600px; border: solid 1px #777; }
     .hint-overlay {
       text-align: center;
-      margin-bottom: 1em;
+      margin-bottom: 0.5em;
       font-size: 18pt;
       color: #d81b60;
       font-weight: bold;
     }
-
+    .highlight-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: linear-gradient(to right, rgba(255,255,0,0.2) 0%, rgba(255,255,0,0.2) 28%, transparent 28%, transparent 72%, rgba(255,255,0,0.2) 72%, rgba(255,255,0,0.2) 100%);
+    }
     @media (max-width: 600px) {
       .banner-line-2 { font-size: 28pt; }
       #time-info { font-size: 16pt; }
@@ -79,12 +52,11 @@
   </div>
 
   <div class="calendar-wrapper">
-    <div class="hint-overlay" id="day-hint">Loading...</div>
-    
+    <div class="hint-overlay">Today & Tomorrow Highlighted</div>
+    <div class="highlight-bar"></div>
     <iframe
-      src="https://calendar.google.com/calendar/embed?src=tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com&ctz=Europe%2FLondon&mode=AGENDA&showPrint=0&showTabs=0&showCalendars=0"
-      frameborder="0"
-      scrolling="no">
+      src="https://calendar.google.com/calendar/embed?src=tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com&ctz=Europe%2FLondon&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"
+      frameborder="0" scrolling="no">
     </iframe>
   </div>
 
@@ -103,42 +75,22 @@
 
     function getOrdinal(day) {
       if (day > 3 && day < 21) return day + 'th';
-      switch (day % 10) {
-        case 1: return day + 'st';
-        case 2: return day + 'nd';
-        case 3: return day + 'rd';
-        default: return day + 'th';
-      }
+      switch (day % 10) { case 1: return day + 'st'; case 2: return day + 'nd'; case 3: return day + 'rd'; default: return day + 'th'; }
     }
 
     function updateTimeAndDay() {
       const now = new Date();
       const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
       const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"];
-
       const dayStr = dayNames[now.getDay()];
       const dateStr = getOrdinal(now.getDate());
       const monthStr = monthNames[now.getMonth()];
-
-      // Update banner
       document.getElementById("day-of-week-date").innerText = `${dayStr}, ${dateStr} ${monthStr}`;
-
-      // Update time + reminder
       const hours = now.getHours();
       const timeStr = formatTime(now);
       const context = getTimeContext(hours);
       document.getElementById("time-line").innerText = `The time is: ${timeStr} ${context.period}`;
       document.getElementById("time-reminder").innerText = context.reminder;
-
-      // Update hint overlay
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1);
-      const tomorrowDay = dayNames[tomorrow.getDay()];
-      const tomorrowDate = getOrdinal(tomorrow.getDate());
-      const tomorrowMonth = monthNames[tomorrow.getMonth()];
-
-      document.getElementById("day-hint").innerText =
-        `Showing events for Today (${dateStr} ${monthStr}) & Tomorrow (${tomorrowDate} ${tomorrowMonth})`;
     }
 
     updateTimeAndDay();
