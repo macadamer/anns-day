@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Ann’s Day</title>
 <style>
-  :root {
-    --highlight-color: rgba(255,255,0,0.3); /* easy to change highlight color */
-  }
-
   body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -54,15 +50,6 @@
     font-weight: bold;
   }
 
-  .highlight-bar {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    background-color: var(--highlight-color);
-    pointer-events: none;
-    transition: left 0.3s, width 0.3s; /* smooth adjustments on resize */
-  }
-
   @media (max-width: 600px) {
     .banner-line-2 { font-size: 28pt; }
     #time-info { font-size: 16pt; }
@@ -82,8 +69,7 @@
 </div>
 
 <div class="calendar-wrapper">
-  <div class="hint-overlay">Highlighting Today & Tomorrow</div>
-  <div class="highlight-bar" id="highlight-bar"></div>
+  <div class="hint-overlay">Focus on Today & Tomorrow</div>
   <iframe
     src="https://calendar.google.com/calendar/embed?src=tr5r1cj7ck49l7p7q5fijcttuds30tuv%40import.calendar.google.com&ctz=Europe%2FLondon&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"
     frameborder="0" scrolling="no">
@@ -123,31 +109,10 @@ function updateTimeAndDay() {
   const context = getTimeContext(hours);
   document.getElementById("time-line").innerText = `The time is: ${timeStr} ${context.period}`;
   document.getElementById("time-reminder").innerText = context.reminder;
-
-  updateHighlightBar();
 }
 
-// Dynamically position highlight bar for today + tomorrow
-function updateHighlightBar() {
-  const bar = document.getElementById("highlight-bar");
-  const today = new Date().getDay(); // 0=Sun ... 6=Sat
-  const totalDays = 7;
-  const percentPerDay = 100 / totalDays;
-  let leftPercent = today * percentPerDay;
-
-  // If today is Saturday, show Sat+Sun without overflow
-  if (today === 6) leftPercent = 5 * percentPerDay; 
-
-  bar.style.left = `${leftPercent}%`;
-  bar.style.width = `${percentPerDay*2}%`;
-}
-
-// Update every minute
 updateTimeAndDay();
 setInterval(updateTimeAndDay, 60000);
-
-// Adjust highlight bar on window resize
-window.addEventListener('resize', updateHighlightBar);
 </script>
 
 </body>
