@@ -95,9 +95,9 @@ function formatTime(date) {
 }
 
 function getTimeContext(hours) {
-  if (hours < 12) return { period: "in the morning.", reminder: "Have you taken your tablets?" };
-  else if (hours < 17) return { period: "in the afternoon.", reminder: "" };
-  else return { period: "in the evening.", reminder: "Don't forget to take your tablet before bed!" };
+  if (hours < 12) return { period: "in the morning", reminder: "Have you taken your tablets?" };
+  else if (hours < 17) return { period: "in the afternoon", reminder: "" };
+  else return { period: "in the evening", reminder: "Don't forget to take your tablet before bed!" };
 }
 
 function getOrdinal(day) {
