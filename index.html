@@ -68,12 +68,12 @@
 <body>
 
 <header>
-  <p class="banner-line-1">Today is:</p>
+  <p class="banner-line-1">Today is</p>
   <p class="banner-line-2" id="day-of-week-date">Loading...</p>
 </header>
 
 <div id="time-info">
-  <p id="time-line">The time is: --:--</p>
+  <p id="time-line">The time is --:--</p>
   <p id="time-reminder"></p>
 </div>
 
@@ -97,7 +97,7 @@ function formatTime(date) {
 function getTimeContext(hours) {
   if (hours < 12) return { period: "in the morning.", reminder: "Have you taken your tablets?" };
   else if (hours < 17) return { period: "in the afternoon.", reminder: "" };
-  else return { period: "in the evening.", reminder: "Don't forget to take your tablet before bed." };
+  else return { period: "in the evening.", reminder: "Don't forget to take your tablet before bed!" };
 }
 
 function getOrdinal(day) {
@@ -123,7 +123,7 @@ function updateTimeAndDay() {
   const hours = now.getHours();
   const timeStr = formatTime(now);
   const context = getTimeContext(hours);
-  document.getElementById("time-line").innerText = `The time is: ${timeStr} ${context.period}`;
+  document.getElementById("time-line").innerText = `The time is ${timeStr} ${context.period}`;
   document.getElementById("time-reminder").innerText = context.reminder;
 }
 
